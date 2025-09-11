@@ -1,4 +1,6 @@
 import os
+import pydoc
+from pathlib import Path
 
 
 class Globals:
@@ -18,7 +20,7 @@ def DeleteFile(g):
         ".mp4",
     }
     extension = os.path.splitext(g.file)[1]
-    if movieExts[extension]:
+    if extension in movieExts:
         print("This file seems to be a have a video extension, are you sure you want to delete it? (y/n)")
         if input("> ") == 'n':
             g.skip = False
@@ -42,16 +44,37 @@ def Skip(g):
 
 
 def PrintFile(g):
-    ListDirs(g.cwd)
+    path = Path(os.path.join(g.cwd, g.file))
+    text = path.read_text(encoding="utf-8", errors="replace")
+    pydoc.pager(text)
+
+
+def Quit(g):
+    exit(0)
+
+
+def Help(g):
+    print("\033[1;34mOptions:\033[0m")
+    print(f"\033[37m(l) list directories in {g.cwd} \033[0m")
+    print("\033[37m(d) delete file\033[0m")
+    print("\033[37m(c) create new folder for file\033[0m")
+    print("\033[37m(r) rename file\033[0m")
+    print("\033[37m(s) skip file / done\033[0m")
+    print("\033[37m(p) list file contents\033[0m")
+    print("\033[37m(q) quit\033[0m")
+    print("\033[1;34mFile:\033[0m", g.file)
 
 
 def main():
     commands = {
         'l': ListDirs,
+        's': Skip,
         'd': DeleteFile,
         'c': CreateFolder,
         'r': RenameFile,
-        'p': PrintFile
+        'p': PrintFile,
+        'h': Help,
+        'q': Quit
     }
     g = Globals()
 
@@ -63,24 +86,20 @@ def main():
     ListDirs(g)
 
     root = input("Folder to crawl: ")
-    globals = os.path.join(g.cwd, root)
+    g.cwd = os.path.join(g.cwd, root)
 
     filenames = [f for f in os.listdir(root) if os.path.isfile(os.path.join(g.cwd,f))]
 
     # Movie Name (year).filetype
     for filename in filenames:
         g.skip = False
-        print("\033[1;34mOptions:\033[0m")
-        print(f"\033[37m(l) list directories in {root} \033[0m")
-        print("\033[37m(d) delete file\033[0m")
-        print("\033[37m(c) create new folder for file\033[0m")
-        print("\033[37m(r) rename file\033[0m")
-        print("\033[37m(s) skip file / done\033[0m")
-        print("\033[37m(p) list file contents\033[0m")
-        print("\033[1;34mFile:\033[0m", filename)
         g.file = filename
+        Help(g)
         while True:
             command = input("> ")
+            if command not in commands:
+                print("Invalid command, \'h\' for help")
+                continue
             commands[command](g)
             if g.skip:
                 break
