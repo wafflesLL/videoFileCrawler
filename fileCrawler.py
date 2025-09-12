@@ -1,5 +1,7 @@
+#!/usr/bin/env python
 import os
 import pydoc
+import shlex
 from pathlib import Path
 
 
@@ -21,7 +23,7 @@ def DeleteFile(g):
     }
     extension = os.path.splitext(g.file)[1]
     if extension in movieExts:
-        print("This file seems to be a have a video extension, are you sure you want to delete it? (y/n)")
+        print("This file seems to have a video extension, are you sure you want to delete it? (y/n)")
         if input("> ") == 'n':
             g.skip = False
             return
@@ -32,7 +34,20 @@ def DeleteFile(g):
 
 
 def CreateFolder(g):
-    ListDirs(g.cwd)
+    fname = None
+    while True:
+        try:
+            fname = input("Name New Folder> ")
+            if fname == 'q':
+                break
+            os.mkdir(fname)
+        except FileExistsError:
+            print("Folder Exists already, try again or quit folder creation (q)")
+            continue
+        os.rename(os.path.join(g.cwd, g.file), os.path.join(g.cwd, fname, g.file))
+        Skip(g)
+        break
+    return
 
 
 def RenameFile(g):
@@ -49,6 +64,10 @@ def PrintFile(g):
     pydoc.pager(text)
 
 
+def Open(g):
+    os.system(f"xdg-open {shlex.quote(os.path.join(g.cwd, g.file))}")
+
+
 def Quit(g):
     exit(0)
 
@@ -61,6 +80,7 @@ def Help(g):
     print("\033[37m(r) rename file\033[0m")
     print("\033[37m(s) skip file / done\033[0m")
     print("\033[37m(p) list file contents\033[0m")
+    print("\033[37m(o) open file\033[0m")
     print("\033[37m(q) quit\033[0m")
     print("\033[1;34mFile:\033[0m", g.file)
 
@@ -74,6 +94,7 @@ def main():
         'r': RenameFile,
         'p': PrintFile,
         'h': Help,
+        'o': Open,
         'q': Quit
     }
     g = Globals()
