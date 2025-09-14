@@ -50,7 +50,17 @@ def CreateFolder(g):
 
 
 def RenameFile(g):
-    ListDirs(g.cwd)
+    extension = os.path.splitext(g.file)[1]
+    print("\033[1;33mDo not include file extension\033[0m")
+    while True:
+        try:
+            fileName = input("RenameFile> ") + extension
+            os.rename(os.path.join(g.cwd, g.file), os.path.join(g.cwd, fileName))
+        except FileNotFoundError:
+            print("File Naming error, Use a valid Name")
+            continue
+        break
+    print(f"File renamed to {fileName}")
 
 
 def Skip(g):
@@ -116,7 +126,7 @@ def main():
         g.file = filename
         Help(g)
         while True:
-            command = input("> ")
+            command = input(f"{g.file}> ")
             if command not in commands:
                 print("Invalid command, \'h\' for help")
                 continue
