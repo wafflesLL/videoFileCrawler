@@ -45,7 +45,6 @@ def CreateFolder(g):
             print("Folder Exists already, try again or quit folder creation (q)")
             continue
         os.rename(os.path.join(g.cwd, g.file), os.path.join(g.cwd, fname, g.file))
-        Skip(g)
         break
     return
 
