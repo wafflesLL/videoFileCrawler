@@ -40,11 +40,12 @@ def CreateFolder(g):
             fname = input("Name New Folder> ")
             if fname == 'q':
                 break
-            os.mkdir(fname)
+            os.mkdir(os.path.join(g.cwd, fname))
         except FileExistsError:
             print("Folder Exists already, try again or quit folder creation (q)")
             continue
         os.rename(os.path.join(g.cwd, g.file), os.path.join(g.cwd, fname, g.file))
+        g.cwd = os.path.join(g.cwd, fname)
         break
     return
 
@@ -54,7 +55,9 @@ def RenameFile(g):
     print("\033[1;33mDo not include file extension\033[0m")
     while True:
         try:
-            fileName = input("RenameFile> ") + extension
+            fileName = input("Name> ")
+            fileYear = input("Year> ")
+            fileName = f"{fileName} ({fileYear}){extension}"
             os.rename(os.path.join(g.cwd, g.file), os.path.join(g.cwd, fileName))
         except FileNotFoundError:
             print("File Naming error, Use a valid Name")
@@ -117,22 +120,24 @@ def main():
 
     root = input("Folder to crawl: ")
     g.cwd = os.path.join(g.cwd, root)
+    while dirnames:
+        filenames = [f for f in os.listdir(root) if os.path.isfile(os.path.join(g.cwd,f))]
+        for filename in filenames:
+            g.skip = False
+            g.file = filename
+            Help(g)
+            while True:
+                command = input(f"{g.file}> ")
+                if command not in commands:
+                    print("Invalid command, \'h\' for help")
+                    continue
+                commands[command](g)
+                if g.skip:
+                    break
+        g.cwd = dirnames[0]
+        if dirnames[0] in dirnames:
+            dirnames.pop(0)
 
-    filenames = [f for f in os.listdir(root) if os.path.isfile(os.path.join(g.cwd,f))]
-
-    # Movie Name (year).filetype
-    for filename in filenames:
-        g.skip = False
-        g.file = filename
-        Help(g)
-        while True:
-            command = input(f"{g.file}> ")
-            if command not in commands:
-                print("Invalid command, \'h\' for help")
-                continue
-            commands[command](g)
-            if g.skip:
-                break
     return
 
 
